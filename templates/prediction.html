@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %} Home {% endblock title %}
+
+{% block body %}
+
+{% load static %}
+
+<!-- Hero Section -->
+<section class="h-screen bg-slate-600">
+    <div class="container mx-auto p-4 pt-6 md:p-6 lg:p-12">
+      <h1 class="text-4xl font-bold mb-4 text-amber-200">Lemon Quality Detection</h1>
+    </div>
+
+    <div class="container mx-auto p-4 pt-6 md:p-6 lg:p-12">
+      <div class="flex justify-center mb-8">
+        <div class="w-full max-w-md">
+            <form id="prediction-form" method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" id="image-input" name="image-input" class="block w-full text-sm border border-gray-300 rounded-md py-2 px-3">
+            <br><br><button class="bg-yellow-500 hover:bg-amber-300 text-white font-bold py-2 px-4 rounded-md shadow-md" id="predict-btn">Detect Quality</button>
+          </form>
+        </div>
+      </div>
+
+       <!-- Output Box -->
+       <div id="result-container" class="flex justify-center mb-8">
+        <div class="w-full max-w-md">
+          <h2 class="text-2xl font-bold mb-4 text-rose-500">Quality Detection Result</h2>
+          <div class="bg-gray-900 p-4 rounded-md">
+            <p id="result-text" class="text-lg text-yellow-300"></p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Javascript Code -->
+  <script>
+    document.getElementById('predict-btn').addEventListener('click', function(event) {
+      event.preventDefault();
+
+      const form = document.getElementById('prediction-form');
+      const formData = new FormData(form);
+
+      // Get the CSRF token from the form
+      const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+      fetch('{% url "predict" %}', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': csrfToken  // Include CSRF token in headers
+        },
+        body: formData,
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json();
+      })
+      .then(data => {
+        const resultText = document.getElementById('result-text');
+        resultText.textContent = `${data.quality_detection_result}`;
+      })
+      .catch(error => console.error('There has been a problem with your fetch operation:', error));
+    });
+  </script>
+
+{% endblock body %}
